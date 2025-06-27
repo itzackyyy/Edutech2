@@ -1,2 +1,2 @@
 # Edutech2
-Aplicación informática para Edutech.
+Aplicación informática para Edutech con microservicios.
