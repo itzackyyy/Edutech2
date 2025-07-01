@@ -9,7 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,45 +23,39 @@ public class UsuarioServiceTest {
 
 
     @Mock
-    private UsuarioRepository usuarioRepository;
+    private UsuarioRepository repouser;
+
 
 
     @InjectMocks
     private UsuarioService usuarioService;
-
-    private Usuario usuario1;
-    private Usuario usuario2;
+    private Usuario u;
+    private List<Usuario> mostrarUsuarios;
 
     @BeforeEach
     void setUp() {
 
-        usuario1 = new Usuario(1, "Juan", "Perez", "juan.perez@example.com", "123456789");
-        usuario2 = new Usuario(2, "Ana", "Gonzales", "ana.gonz@example.com", "987654321");
+        u = new Usuario(1,"Juan", "Perez", "juan.perez@example.com", "123456789");
+        mostrarUsuarios = Arrays.asList(u);
     }
 
     @Test
     void testGuardarUsuario() {
-        when(usuarioRepository.findAll()).thenReturn(Arrays.asList(usuario1, usuario2));
+        when(repouser.save(any(Usuario.class))).thenReturn(u);
+        Usuario usuarioGuardado = usuarioService.guardar(u);
+        verify(repouser, times(1)).save(u);
 
-        List<Usuario> usuarioList = usuarioService.mostrarUsuarios();
-
-
-        verify(usuarioRepository, times(1)).findAll();
-        assertNotNull(usuarioList);
-        assertEquals(2, usuarioList.size());
-        assertEquals("Juan", usuarioList.get(0).getNombre_usuario());
+        assertNotNull(usuarioGuardado);
+        assertEquals(u.getNombre_usuario(), usuarioGuardado.getNombre_usuario());
+        assertEquals(u.getId_usuario(), usuarioGuardado.getId_usuario());
     }
 
     @Test
     void testObtenerUsuarioPorIdExistente() {
-        // Cuando se llama a findById con el ID 1, debe retornar un Optional con usuario1
-        when(usuarioRepository.findById(1)).thenReturn(Optional.of(usuario1));
-
+        when(repouser.findById(1)).thenReturn(Optional.of(u));
         Usuario usuarioEncontrado = usuarioService.obtenerUsuarioPorId(1);
 
-        // Verificamos que findById fue llamado una vez con el ID 1
-        verify(usuarioRepository, times(1)).findById(1);
-        // Verificamos que el usuario encontrado es el esperado
+        verify(repouser, times(1)).findById(1);
         assertNotNull(usuarioEncontrado);
         assertEquals(1, usuarioEncontrado.getId_usuario());
         assertEquals("Juan", usuarioEncontrado.getNombre_usuario());
@@ -70,31 +63,44 @@ public class UsuarioServiceTest {
 
     @Test
     void testObtenerUsuarioPorIdNoExistente() {
-        // Cuando se llama a findById con un ID no existente, debe retornar un Optional vacío
-        when(usuarioRepository.findById(99)).thenReturn(Optional.empty());
 
-        // Verificamos que se lanza la excepción EntityNotFoundException
+        int nonExistentId = 99;
+        when(repouser.findById(nonExistentId)).thenReturn(Optional.empty());
         Exception exception = assertThrows(EntityNotFoundException.class, () -> {
-            usuarioService.obtenerUsuarioPorId(99);
+            usuarioService.obtenerUsuarioPorId(nonExistentId);
         });
 
-        // Verificamos el mensaje de la excepción
-        String expectedMessage = "El usuario con la id: 99 no se ha encontrado o no existe";
-        String actualMessage = exception.getMessage();
-        assertTrue(actualMessage.contains(expectedMessage));
-        // Verificamos que findById fue llamado una vez con el ID 99
-        verify(usuarioRepository, times(1)).findById(99);
-    }
+            String expectedMessage = "El usuario con la id: " + nonExistentId + " no se ha encontrado o no existe";
+            String actualMessage = exception.getMessage();
+            assertEquals(expectedMessage, actualMessage);
+            verify(repouser, times(1)).findById(nonExistentId);
+        }
+
 
     @Test
     void testEliminarUsuario() {
-        // No necesitamos que deleteById retorne nada, solo verificamos que fue llamado
-        doNothing().when(usuarioRepository).deleteById(1);
-
+        doNothing().when(repouser).deleteById(1);
         usuarioService.eliminarUsuario(1);
+        verify(repouser, times(1)).deleteById(1);
 
-        // Verificamos que deleteById fue llamado una vez con el ID 1
-        verify(usuarioRepository, times(1)).deleteById(1);
+    }
 
+    @Test
+    void testEliminarUsuario2(){
+        doNothing().when(repouser).deleteById(1);
+        repouser.deleteById(1);
+        verify(repouser, times(1)).deleteById(1);
+    }
+
+    @Test
+    void listarUsuarios(){
+        when(repouser.findAll()).thenReturn(mostrarUsuarios);
+        List<Usuario> usuariosObtenidos = usuarioService.mostrarUsuarios();
+
+        verify(repouser, times(1)).findAll();
+        assertNotNull(usuariosObtenidos);
+        assertEquals(1,usuariosObtenidos.size());
+        assertEquals(mostrarUsuarios.getFirst().getNombre_usuario(), usuariosObtenidos.getFirst().getNombre_usuario());
+        assertEquals(mostrarUsuarios, usuariosObtenidos);
     }
 }
