@@ -1,0 +1,6 @@
+insert into Usuarios (apellido_usuario, correo_usuario, nombre_usuario, telefono_usuario) values('Soto','bruno.soto@gmail.com','Bruno','971485850');
+insert into Soporte (apellido_soporte, correo_soporte, nombre_soporte, numero_soporte) values ('Gonzales','gonz.juan@gmail.com','Juan','979792720');
+insert into contenido_didactico (asignatura_material, descripcion_material, titulo_material, valor_material) values ('Informatica','Libro para aprender lo basico de la informatica desde sus cimientos','Principios Basicos de la Informatica','10.000');
+insert into gerente (apellido_gerente, nombre_gerente) value ('Baeza','Guillermo')
+
+
